@@ -38,4 +38,14 @@ class CMSTest < Minitest::Test
 2014 - Ruby 2.2 released.
 2015 - Ruby 2.3 released."
   end
+
+  def test_nonexistent_files
+    get "/notafile.ext"
+
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+
+    assert_includes last_response.body, "notafile.ext does not exist."
+  end
 end
