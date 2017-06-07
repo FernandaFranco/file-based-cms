@@ -1,12 +1,29 @@
 require "sinatra"
 require "sinatra/reloader"
 require "tilt/erubis"
-
-root = File.expand_path("..", __FILE__)
+require "redcarpet"
 
 configure do
   enable :sessions
   set :session_secret, 'super secret'
+end
+
+root = File.expand_path("..", __FILE__)
+
+def render_markdown(text)
+  markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
+  markdown.render(text)
+end
+
+def load_file_content(path)
+  content = File.read(path)
+  case File.extname(path)
+  when ".txt"
+    headers["Content-Type"] = "text/plain"
+    content
+  when ".md"
+    render_markdown(content)
+  end
 end
 
 get "/" do
@@ -17,12 +34,12 @@ get "/" do
 end
 
 get "/:filename" do
-  file_path = root + "/data/" + params[:filename]
+  filename = params[:filename]
+  file_path = root + "/data/" + filename
   if File.exist?(file_path)
-    headers["Content-Type"] = "text/plain"
-    File.read(file_path)
+    load_file_content(file_path)
   else
-    session[:message] = "#{params[:filename]} does not exist."
+    session[:message] = "#{filename} does not exist."
     redirect "/"
   end
 end
