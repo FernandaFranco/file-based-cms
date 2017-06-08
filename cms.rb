@@ -38,8 +38,25 @@ get "/:filename" do
   file_path = root + "/data/" + filename
   if File.exist?(file_path)
     load_file_content(file_path)
+  elsif File.extname(file_path) == ".ico"
   else
     session[:message] = "#{filename} does not exist."
     redirect "/"
   end
+end
+
+get "/:filename/edit" do
+  @filename = params[:filename]
+  file_path = root + "/data/" + @filename
+  @content = File.read(file_path)
+  erb :edit
+end
+
+post "/:filename" do
+  new_content = params[:new_content]
+  filename = params[:filename]
+  file_path = root + "/data/" + filename
+  File.write(file_path, new_content)
+  session[:message] = "#{filename} has been updated."
+  redirect "/"
 end
