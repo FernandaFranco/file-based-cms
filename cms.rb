@@ -43,6 +43,7 @@ end
 get "/:filename" do
   filename = params[:filename]
   file_path = File.join(data_path, filename)
+
   if File.exist?(file_path)
     load_file_content(file_path)
   elsif File.extname(file_path) == ".ico"
