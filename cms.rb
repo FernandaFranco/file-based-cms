@@ -40,6 +40,10 @@ get "/" do
   erb :index
 end
 
+get "/new" do
+  erb :new
+end
+
 get "/:filename" do
   filename = params[:filename]
   file_path = File.join(data_path, filename)
@@ -57,6 +61,25 @@ get "/:filename/edit" do
   file_path = File.join(data_path, @filename)
   @content = File.read(file_path)
   erb :edit
+end
+
+def create_document(name, content = "")
+  File.open(File.join(data_path, name), "w") do |file|
+    file.write(content)
+  end
+end
+
+post "/new" do
+  filename = params[:new_document].to_s
+  if filename != ""
+    create_document(filename)
+    session[:message] = "#{filename} was created."
+    redirect "/"
+  else
+    session[:message] = "A name is required."
+    status 422
+    erb :new
+  end
 end
 
 post "/:filename" do

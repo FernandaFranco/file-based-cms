@@ -109,6 +109,10 @@ def test_updating_document
     assert_includes last_response.body, "anxianx"
   end
 
+  def test_creating_new_documents
+
+  end
+
   def teardown
     FileUtils.rm_rf(data_path)
   end
