@@ -46,7 +46,6 @@ get "/:filename" do
 
   if File.exist?(file_path)
     load_file_content(file_path)
-  elsif File.extname(file_path) == ".ico"
   else
     session[:message] = "#{filename} does not exist."
     redirect "/"
