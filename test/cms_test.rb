@@ -109,8 +109,28 @@ def test_updating_document
     assert_includes last_response.body, "anxianx"
   end
 
-  def test_creating_new_documents
+  def test_view_new_document_form
+    get "/new"
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input"
+    assert_includes last_response.body, %q(<button type="submit")
+  end
 
+  def test_creating_new_documents
+    post "/new", new_document: "text.txt"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_includes last_response.body, "text.txt was created"
+
+    get "/"
+    assert_includes last_response.body, "text.txt"
+  end
+
+  def test_creating_new_document_without_filename
+    post "/new", new_document: ""
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "A name is required."
   end
 
   def teardown
