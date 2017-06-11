@@ -133,6 +133,22 @@ def test_updating_document
     assert_includes last_response.body, "A name is required."
   end
 
+  def test_deleting_documents
+    create_document("changes.txt")
+
+    get "/"
+    assert_includes last_response.body, %q(<button type="submit")
+
+    post "/changes.txt/delete"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_includes last_response.body, "changes.txt has been deleted."
+
+    get "/"
+    refute_includes last_response.body, "changes.txt"
+  end
+
   def teardown
     FileUtils.rm_rf(data_path)
   end
