@@ -71,14 +71,18 @@ end
 
 post "/new" do
   filename = params[:new_document].to_s
-  if filename != ""
-    create_document(filename)
-    session[:message] = "#{filename} was created."
-    redirect "/"
-  else
+  if filename.size == 0
     session[:message] = "A name is required."
     status 422
     erb :new
+  elsif File.extname(filename) == "" || ![".md", ".txt"].include?(File.extname(filename))
+    session[:message] = "Invalid extension name."
+    status 422
+    erb :new
+  else
+    create_document(filename)
+    session[:message] = "#{filename} was created."
+    redirect "/"
   end
 end
 
