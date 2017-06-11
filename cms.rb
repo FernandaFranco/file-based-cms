@@ -94,3 +94,11 @@ post "/:filename" do
   session[:message] = "#{filename} has been updated."
   redirect "/"
 end
+
+post "/:filename/delete" do
+  filename = params[:filename]
+  file_path = File.join(data_path, filename)
+  File.delete(file_path)
+  session[:message] = "#{filename} has been deleted."
+  redirect "/"
+end
