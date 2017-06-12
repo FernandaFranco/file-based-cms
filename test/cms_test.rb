@@ -149,6 +149,44 @@ def test_updating_document
     refute_includes last_response.body, "changes.txt"
   end
 
+  def test_signing_in
+    get "/"
+
+    assert_includes last_response.body, "Sign In"
+
+    get "/users/signin"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input"
+    assert_includes last_response.body, %q(<button type="submit")
+  end
+
+  def test_valid_credentials
+    post "/users/signin", username: "admin", password: "secret"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "Welcome!"
+    assert_includes last_response.body, "Signed in as admin"
+  end
+
+  def test_invalid_credentials
+    post "/users/signin", username: "admin", password: "wrong"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid Credentials"
+  end
+
+  def test_signout
+    post "/users/signin", username: "admin", password: "secret"
+    get last_response["Location"]
+
+    post "/users/signout"
+    get last_response["Location"]
+      assert_includes last_response.body, "You have been signed out."
+      assert_includes last_response.body, "Sign In"
+  end
+
   def teardown
     FileUtils.rm_rf(data_path)
   end

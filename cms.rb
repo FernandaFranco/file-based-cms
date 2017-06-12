@@ -34,9 +34,7 @@ end
 
 get "/" do
   pattern = File.join(data_path, "*")
-  @files = Dir.glob(pattern).map do |path|
-    File.basename(path)
-  end
+  @files = Dir.glob(pattern).map { |path| File.basename(path) }
   erb :index
 end
 
@@ -100,5 +98,27 @@ post "/:filename/delete" do
   file_path = File.join(data_path, filename)
   File.delete(file_path)
   session[:message] = "#{filename} has been deleted."
+  redirect "/"
+end
+
+get "/users/signin" do
+  erb :signin
+end
+
+post "/users/signin" do
+  if params[:username] == "admin" && params[:password] == "secret"
+    session[:username] = params[:username]
+    session[:message] = "Welcome!"
+    redirect "/"
+  else
+    session[:message] = "Invalid Credentials"
+    status 422
+    erb :signin
+  end
+end
+
+post "/users/signout" do
+  session.delete(:username)
+  session[:message] = "You have been signed out."
   redirect "/"
 end
