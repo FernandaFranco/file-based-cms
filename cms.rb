@@ -32,6 +32,17 @@ def load_file_content(path)
   end
 end
 
+def user_signed_in?
+  session.key?(:username)
+end
+
+def redirect_not_signed_in_user
+  unless user_signed_in?
+    session[:message] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
+
 get "/" do
   pattern = File.join(data_path, "*")
   @files = Dir.glob(pattern).map { |path| File.basename(path) }
@@ -39,6 +50,8 @@ get "/" do
 end
 
 get "/new" do
+  redirect_not_signed_in_user
+
   erb :new
 end
 
@@ -55,6 +68,7 @@ get "/:filename" do
 end
 
 get "/:filename/edit" do
+  redirect_not_signed_in_user
   @filename = params[:filename]
   file_path = File.join(data_path, @filename)
   @content = File.read(file_path)
@@ -68,6 +82,8 @@ def create_document(name, content = "")
 end
 
 post "/new" do
+  redirect_not_signed_in_user
+
   filename = params[:new_document].to_s
   if filename.size == 0
     session[:message] = "A name is required."
@@ -85,6 +101,8 @@ post "/new" do
 end
 
 post "/:filename" do
+  redirect_not_signed_in_user
+
   new_content = params[:new_content]
   filename = params[:filename]
   file_path = File.join(data_path, filename)
@@ -94,6 +112,8 @@ post "/:filename" do
 end
 
 post "/:filename/delete" do
+  redirect_not_signed_in_user
+
   filename = params[:filename]
   file_path = File.join(data_path, filename)
   File.delete(file_path)
