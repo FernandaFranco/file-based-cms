@@ -107,12 +107,17 @@ post "/new" do
   redirect_not_signed_in_user
 
   filename = params[:new_document].to_s
+  file_path = File.join(data_path, filename)
   if filename.size == 0
     session[:message] = "A name is required."
     status 422
     erb :new
   elsif File.extname(filename) == "" || ![".md", ".txt"].include?(File.extname(filename))
     session[:message] = "Invalid extension name."
+    status 422
+    erb :new
+  elsif File.exist?(file_path)
+    session[:message] = "Document name already in use."
     status 422
     erb :new
   else
