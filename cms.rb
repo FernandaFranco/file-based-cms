@@ -20,10 +20,10 @@ end
 
 def load_user_credentials
   credentials_path = if ENV["RACK_ENV"] == "test"
-    File.expand_path("../test/users.yml", __FILE__)
-  else
-    File.expand_path("../users.yml", __FILE__)
-  end
+                       File.expand_path("../test/users.yml", __FILE__)
+                     else
+                       File.expand_path("../users.yml", __FILE__)
+                     end
   YAML.load_file(credentials_path)
 end
 
@@ -108,7 +108,7 @@ post "/new" do
 
   filename = params[:new_document].to_s
   file_path = File.join(data_path, filename)
-  if filename.size == 0
+  if filename.size.zero?
     session[:message] = "A name is required."
     status 422
     erb :new
@@ -145,6 +145,31 @@ post "/:filename/delete" do
   file_path = File.join(data_path, filename)
   File.delete(file_path)
   session[:message] = "#{filename} has been deleted."
+  redirect "/"
+end
+
+def duplicated_file_path(original_filename)
+  number = 1
+  duplicated_filename = File.basename(original_filename, ".*") + "_" + number.to_s + File.extname(original_filename)
+  duplicated_file_path = File.join(data_path, duplicated_filename)
+
+  while File.exist?(duplicated_file_path)
+    number += 1
+    duplicated_filename = File.basename(original_filename, ".*") + "_" + number.to_s + File.extname(original_filename)
+    duplicated_file_path = File.join(data_path, duplicated_filename)
+  end
+
+  duplicated_file_path
+end
+
+post "/:filename/duplicate" do
+  redirect_not_signed_in_user
+
+  filename = params[:filename].to_s
+  file_path = File.join(data_path, filename)
+  content = File.read(file_path)
+  File.write(duplicated_file_path(filename), content)
+  session[:message] = "#{filename} has been duplicated."
   redirect "/"
 end
 

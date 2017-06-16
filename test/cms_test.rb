@@ -47,33 +47,12 @@ class CMSTest < Minitest::Test
 
   def test_viewing_text_document
     create_document "history.txt", "1993 - Yukihiro Matsumoto dreams up Ruby.
-1995 - Ruby 0.95 released.
-1996 - Ruby 1.0 released.
-1998 - Ruby 1.2 released.
-1999 - Ruby 1.4 released.
-2000 - Ruby 1.6 released.
-2003 - Ruby 1.8 released.
-2007 - Ruby 1.9 released.
-2013 - Ruby 2.0 released.
-2013 - Ruby 2.1 released.
-2014 - Ruby 2.2 released.
-2015 - Ruby 2.3 released."
+1995 - Ruby 0.95 released."
 
     get "/history.txt"
     assert_equal 200, last_response.status
     assert_equal "text/plain", last_response["Content-Type"]
-    assert_includes last_response.body, "1993 - Yukihiro Matsumoto dreams up Ruby.
-1995 - Ruby 0.95 released.
-1996 - Ruby 1.0 released.
-1998 - Ruby 1.2 released.
-1999 - Ruby 1.4 released.
-2000 - Ruby 1.6 released.
-2003 - Ruby 1.8 released.
-2007 - Ruby 1.9 released.
-2013 - Ruby 2.0 released.
-2013 - Ruby 2.1 released.
-2014 - Ruby 2.2 released.
-2015 - Ruby 2.3 released."
+    assert_includes last_response.body, "1993 - Yukihiro Matsumoto dreams up"
   end
 
   def test_nonexistent_document
@@ -102,10 +81,10 @@ class CMSTest < Minitest::Test
     assert_equal 200, last_response.status
     assert_equal "text/html;charset=utf-8", last_response["Content-Type"]
     assert_includes last_response.body, "<textarea"
-    assert_includes last_response.body, %q(<button type="submit")
-end
+    assert_includes last_response.body, '<button type="submit"'
+  end
 
-def test_editing_document_signed_out
+  def test_editing_document_signed_out
     create_document "changes.txt"
 
     get "/changes.txt/edit"
@@ -114,8 +93,8 @@ def test_editing_document_signed_out
     assert_equal "You must be signed in to do that.", session[:message]
   end
 
-def test_updating_document
-    post "/changes.txt", {new_content: "new content"}, admin_session
+  def test_updating_document
+    post "/changes.txt", { new_content: "new content" }, admin_session
     assert_equal 302, last_response.status
     assert_equal "changes.txt has been updated.", session[:message]
 
@@ -131,14 +110,13 @@ def test_updating_document
     post "/changes.txt", new_content: "new content"
     assert_equal 302, last_response.status
     assert_equal "You must be signed in to do that.", session[:message]
-
   end
 
   def test_view_new_document_form
     get "/new", {}, admin_session
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<input"
-    assert_includes last_response.body, %q(<button type="submit")
+    assert_includes last_response.body, '<button type="submit"'
   end
 
   def test_view_new_document_form_signed_out
@@ -148,7 +126,7 @@ def test_updating_document
   end
 
   def test_creating_new_documents
-    post "/new", {new_document: "text.txt"}, admin_session
+    post "/new", { new_document: "text.txt" }, admin_session
     assert_equal 302, last_response.status
     assert_equal "text.txt was created.", session[:message]
 
@@ -160,22 +138,35 @@ def test_updating_document
   end
 
   def test_creating_new_documents_signed_out
-    post "/new", {new_document: "text.txt"}
+    post "/new", new_document: "text.txt"
     assert_equal 302, last_response.status
     assert_equal "You must be signed in to do that.", session[:message]
   end
 
   def test_creating_new_document_without_filename
-    post "/new", {new_document: ""}, admin_session
+    post "/new", { new_document: "" }, admin_session
     assert_equal 422, last_response.status
     assert_includes last_response.body, "A name is required."
+  end
+
+  def test_creating_new_document_with_wrong_extension
+    post "/new", { new_document: "test.exe" }, admin_session
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid extension name."
+  end
+
+  def test_creating_new_document_existing_name
+    create_document("test.txt")
+    post "/new", { new_document: "test.txt" }, admin_session
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Document name already in use."
   end
 
   def test_deleting_documents
     create_document("changes.txt")
 
     get "/"
-    assert_includes last_response.body, %q(<button type="submit")
+    assert_includes last_response.body, '<button type="submit"'
 
     post "/changes.txt/delete", {}, admin_session
     assert_equal 302, last_response.status
@@ -185,13 +176,32 @@ def test_updating_document
     # assert_includes last_response.body, "changes.txt has been deleted."
 
     get "/"
-    refute_includes last_response.body, %q(href="/changes.txt")
+    refute_includes last_response.body, 'href="/changes.txt"'
   end
 
-  def  test_deleting_documents_signed_out
+  def test_deleting_documents_signed_out
     create_document("changes.txt")
 
     post "/changes.txt/delete"
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
+  def test_duplicating_documents
+    create_document("changes.txt")
+
+    post "/changes.txt/duplicate", {}, admin_session
+    assert_equal 302, last_response.status
+    assert_equal "changes.txt has been duplicated.", session[:message]
+
+    get last_response["Location"]
+    assert_includes last_response.body, "changes_1.txt"
+  end
+
+  def test_duplicating_documents_signed_out
+    create_document("changes.txt")
+
+    post "/changes.txt/duplicate"
     assert_equal 302, last_response.status
     assert_equal "You must be signed in to do that.", session[:message]
   end
@@ -205,18 +215,16 @@ def test_updating_document
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<input"
-    assert_includes last_response.body, %q(<button type="submit")
+    assert_includes last_response.body, '<button type="submit"'
   end
 
   def test_valid_credentials
     post "/users/signin", username: "admin", password: "secret"
     assert_equal 302, last_response.status
-    assert_equal "Welcome!", session[:message]
     assert_equal "admin", session[:username]
 
     get last_response["Location"]
     assert_equal 200, last_response.status
-    # assert_includes last_response.body, "Welcome!"
     assert_includes last_response.body, "Signed in as admin"
   end
 
@@ -228,7 +236,7 @@ def test_updating_document
   end
 
   def test_signout
-    get "/", {}, {"rack.session" => {username: "admin"}}
+    get "/", {}, "rack.session" => { username: "admin" }
     assert_includes last_response.body, "Signed in as admin"
     # post "/users/signin", username: "admin", password: "secret"
     # get last_response["Location"]
@@ -236,9 +244,9 @@ def test_updating_document
     post "/users/signout"
     get last_response["Location"]
 
-      assert_nil session[:username]
-      assert_includes last_response.body, "You have been signed out."
-      assert_includes last_response.body, "Sign In"
+    assert_nil session[:username]
+    assert_includes last_response.body, "You have been signed out."
+    assert_includes last_response.body, "Sign In"
   end
 
   def teardown
