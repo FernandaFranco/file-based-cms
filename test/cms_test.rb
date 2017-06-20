@@ -18,6 +18,15 @@ class CMSTest < Minitest::Test
 
   def setup
     FileUtils.mkdir_p(data_path)
+    hashed_password = BCrypt::Password.create("secret").to_s
+    File.open(credentials_path, 'w') do |file|
+      file.write(Psych.dump({ "admin" => hashed_password }))
+    end
+  end
+
+  def teardown
+    FileUtils.rm_rf(data_path)
+    File.delete(credentials_path)
   end
 
   def session
@@ -235,6 +244,35 @@ class CMSTest < Minitest::Test
     assert_includes last_response.body, "Invalid Credentials"
   end
 
+  def test_signing_up
+    get "/"
+
+    assert_includes last_response.body, "Sign Up"
+
+    get "/users/signup"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input"
+    assert_includes last_response.body, '<button type="submit"'
+  end
+
+  def test_valid_signup_credentials
+    post "/users/signup", username: "fernanda", password: "supersecret"
+    assert_equal 302, last_response.status
+    assert_equal "fernanda", session[:username]
+
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "Signed in as fernanda"
+  end
+
+  def test_invalid_signup_credentials
+    post "/users/signup", username: "", password: "secret"
+    assert_equal 422, last_response.status
+    assert_nil session[:username]
+    assert_includes last_response.body, "Invalid username and/or password."
+  end
+
   def test_signout
     get "/", {}, "rack.session" => { username: "admin" }
     assert_includes last_response.body, "Signed in as admin"
@@ -247,9 +285,5 @@ class CMSTest < Minitest::Test
     assert_nil session[:username]
     assert_includes last_response.body, "You have been signed out."
     assert_includes last_response.body, "Sign In"
-  end
-
-  def teardown
-    FileUtils.rm_rf(data_path)
   end
 end

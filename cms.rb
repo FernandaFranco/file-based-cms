@@ -18,13 +18,22 @@ def data_path
   end
 end
 
+def credentials_path
+  if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/users.yml", __FILE__)
+  else
+    File.expand_path("../users.yml", __FILE__)
+  end
+end
+
 def load_user_credentials
-  credentials_path = if ENV["RACK_ENV"] == "test"
-                       File.expand_path("../test/users.yml", __FILE__)
-                     else
-                       File.expand_path("../users.yml", __FILE__)
-                     end
   YAML.load_file(credentials_path)
+end
+
+def update_user_credentials(credentials)
+  File.open(credentials_path, 'w') do |file|
+    file.write(Psych.dump(credentials))
+  end
 end
 
 def valid_credentials?(username, password)
@@ -35,6 +44,18 @@ def valid_credentials?(username, password)
     bcrypt_password == password
   else
     false
+  end
+end
+
+def valid_signup_credentials?(username, password)
+  credentials = load_user_credentials
+
+  if credentials.key?(username) || username.empty? || password.empty?
+    false
+  else
+    bcrypt_password = BCrypt::Password.create(password).to_s
+    credentials[username] = bcrypt_password
+    update_user_credentials(credentials)
   end
 end
 
@@ -51,6 +72,7 @@ def load_file_content(path)
     content
   when ".md"
     render_markdown(content)
+  when ".png"
   end
 end
 
@@ -195,4 +217,22 @@ post "/users/signout" do
   session.delete(:username)
   session[:message] = "You have been signed out."
   redirect "/"
+end
+
+get "/users/signup" do
+  erb :signup
+end
+
+post "/users/signup" do
+  username = params[:username]
+
+  if valid_signup_credentials?(username, params[:password])
+    session[:username] = username
+    session[:message] = "Welcome!"
+    redirect "/"
+  else
+    session[:message] = "Invalid username and/or password."
+    status 422
+    erb :signup
+  end
 end
