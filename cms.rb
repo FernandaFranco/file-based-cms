@@ -26,6 +26,14 @@ def credentials_path
   end
 end
 
+def public_path
+  if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/public", __FILE__)
+  else
+    File.expand_path("../public", __FILE__)
+  end
+end
+
 def load_user_credentials
   YAML.load_file(credentials_path)
 end
@@ -72,7 +80,9 @@ def load_file_content(path)
     content
   when ".md"
     render_markdown(content)
-  when ".png"
+  when ".png", ".jpg"
+    headers["Content-Type"] = "image/jpeg"
+    content
   end
 end
 
@@ -97,6 +107,12 @@ get "/new" do
   redirect_not_signed_in_user
 
   erb :new
+end
+
+get "/new_image" do
+  redirect_not_signed_in_user
+
+  erb :new_image
 end
 
 get "/:filename" do
@@ -125,6 +141,12 @@ def create_document(name, content = "")
   end
 end
 
+def upload_image(name, content)
+  File.open(File.join(data_path, name), "w") do |f|
+    f.write(content.read)
+  end
+end
+
 post "/new" do
   redirect_not_signed_in_user
 
@@ -145,6 +167,31 @@ post "/new" do
   else
     create_document(filename)
     session[:message] = "#{filename} was created."
+    redirect "/"
+  end
+end
+
+post "/new_image" do
+  redirect_not_signed_in_user
+
+  filename = params[:new_image][:filename].to_s
+  content = params[:new_image][:tempfile]
+  file_path = File.join(data_path, filename)
+  if filename.size.zero?
+    session[:message] = "An image is required."
+    status 422
+    erb :new_image
+  elsif File.extname(filename) == "" || ![".png", ".jpg"].include?(File.extname(filename))
+    session[:message] = "Invalid extension name."
+    status 422
+    erb :new_image
+  elsif File.exist?(file_path)
+    session[:message] = "Image already in use."
+    status 422
+    erb :new_image
+  else
+    upload_image(filename, content)
+    session[:message] = "#{filename} was uploaded."
     redirect "/"
   end
 end

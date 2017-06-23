@@ -9,7 +9,10 @@
 <% end %>
 </ul>
 
-<p><a href="/new">New Document</a></p>
+<p>
+  <a href="/new">New Document</a>
+  <a href="/new_image">New Image</a>
+</p>
 
 <% if session[:username] %>
   <form action="/users/signout" method="post">
