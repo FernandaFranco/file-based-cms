@@ -3,6 +3,9 @@ body {
   font-family: sans-serif;
 }
 
+a {
+  text-decoration: none;
+}
 .message {
   padding: 10px;
   background: #FFFF99;
@@ -17,3 +20,17 @@ form.inline {
   font-size: 0.9em;
 }
 
+button {
+  border: none;
+  border-radius: 7px;
+  color: white;
+  text-align: center;
+}
+
+button.danger:hover {
+    background-color: red;
+}
+
+button.safe:hover {
+    background-color: green;
+}

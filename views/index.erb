@@ -3,8 +3,8 @@
   <li>
     <a href="/<%= file %>"><%= file %></a>
     <a href="/<%= file %>/edit">edit</a>
-    <form class="inline" action="/<%= file %>/delete" method="post"><button type="submit">delete</button></form>
-    <form class="inline" action="/<%= file %>/duplicate" method="post"><button type="submit">duplicate</button></form>
+    <form class="inline" action="/<%= file %>/delete" method="post"><button class="danger" type="submit">delete</button></form>
+    <form class="inline" action="/<%= file %>/duplicate" method="post"><button class="safe" type="submit">duplicate</button></form>
   </li>
 <% end %>
 </ul>
@@ -18,7 +18,7 @@
   <form action="/users/signout" method="post">
     <p class="user-status">
       Signed in as <%= session[:username] %>.
-      <button type="submit">Sign Out</button>
+      <button class="danger" type="submit">Sign Out</button>
     </p>
   </form>
 <% else %>

@@ -142,8 +142,8 @@ def create_document(name, content = "")
 end
 
 def upload_image(name, content)
-  File.open(File.join(data_path, name), "w") do |f|
-    f.write(content.read)
+  File.open(File.join(data_path, name), "w") do |file|
+    file.write(content.read)
   end
 end
 
