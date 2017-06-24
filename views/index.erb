@@ -5,6 +5,7 @@
     <a href="/<%= file %>/edit">edit</a>
     <form class="inline" action="/<%= file %>/delete" method="post"><button class="danger" type="submit">delete</button></form>
     <form class="inline" action="/<%= file %>/duplicate" method="post"><button class="safe" type="submit">duplicate</button></form>
+    <form class="inline" action="/<%= file %>/previous" method="get"><button class="safe" type="submit">previous versions</button></form>
   </li>
 <% end %>
 </ul>

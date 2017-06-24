@@ -242,6 +242,15 @@ post "/:filename/duplicate" do
   redirect "/"
 end
 
+get "/:filename/previous" do
+  redirect_not_signed_in_user
+
+  filename = params[:filename].to_s
+  file_path = File.join(data_path, filename)
+
+  "potato"
+end
+
 get "/users/signin" do
   erb :signin
 end
