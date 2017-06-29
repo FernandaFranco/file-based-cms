@@ -25,6 +25,7 @@ button {
   border-radius: 7px;
   color: white;
   text-align: center;
+  box-shadow: 0 1px #999
 }
 
 button.danger:hover {
@@ -33,4 +34,11 @@ button.danger:hover {
 
 button.safe:hover {
     background-color: green;
+}
+
+button:focus {outline:0;}
+
+button:active {
+  box-shadow: 0 0px;
+  transform: translateY(1px);
 }
