@@ -248,7 +248,7 @@ get "/:filename/previous" do
   filename = params[:filename].to_s
   file_path = File.join(data_path, filename)
 
-  "potato"
+  erb :previous
 end
 
 get "/users/signin" do
