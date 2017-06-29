@@ -42,3 +42,7 @@ button:active {
   box-shadow: 0 0px;
   transform: translateY(1px);
 }
+
+li {
+  padding-top: 5px;
+}
