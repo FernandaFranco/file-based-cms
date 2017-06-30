@@ -4,6 +4,7 @@ require "tilt/erubis"
 require "redcarpet"
 require "yaml"
 require "bcrypt"
+require "date"
 
 configure do
   enable :sessions
@@ -100,6 +101,7 @@ end
 get "/" do
   pattern = File.join(data_path, "*")
   @files = Dir.glob(pattern).map { |path| File.basename(path) }
+                            .reject { |file| File.extname(file).empty?}
   erb :index
 end
 
@@ -137,6 +139,13 @@ end
 
 def create_document(name, content = "")
   File.open(File.join(data_path, name), "w") do |file|
+    file.write(content)
+  end
+
+  dir_path = File.join(data_path ,File.basename(name, ".*"))
+  Dir.mkdir(dir_path)
+  stamped_name = File.basename(name, ".*") + "(" + DateTime.now.to_s + ")" + File.extname(name)
+  File.open(File.join(dir_path, stamped_name), "w") do |file|
     file.write(content)
   end
 end
@@ -203,6 +212,12 @@ post "/:filename" do
   filename = params[:filename]
   file_path = File.join(data_path, filename)
   File.write(file_path, new_content)
+
+  stamped_filename = File.basename(filename, ".*") + "(" + DateTime.now.to_s + ")" + File.extname(filename)
+  dir_path = File.join(data_path, File.basename(filename, ".*"))
+  file_path = File.join(dir_path, stamped_filename)
+  File.write(file_path, new_content)
+
   session[:message] = "#{filename} has been updated."
   redirect "/"
 end
@@ -217,7 +232,7 @@ post "/:filename/delete" do
   redirect "/"
 end
 
-def duplicated_file_path(original_filename)
+def duplicated_filename(original_filename)
   number = 1
   duplicated_filename = File.basename(original_filename, ".*") + "_" + number.to_s + File.extname(original_filename)
   duplicated_file_path = File.join(data_path, duplicated_filename)
@@ -228,7 +243,7 @@ def duplicated_file_path(original_filename)
     duplicated_file_path = File.join(data_path, duplicated_filename)
   end
 
-  duplicated_file_path
+  duplicated_filename
 end
 
 post "/:filename/duplicate" do
@@ -237,7 +252,7 @@ post "/:filename/duplicate" do
   filename = params[:filename].to_s
   file_path = File.join(data_path, filename)
   content = File.read(file_path)
-  File.write(duplicated_file_path(filename), content)
+  create_document(duplicated_filename(filename), content)
   session[:message] = "#{filename} has been duplicated."
   redirect "/"
 end
@@ -245,10 +260,29 @@ end
 get "/:filename/previous" do
   redirect_not_signed_in_user
 
-  filename = params[:filename].to_s
-  file_path = File.join(data_path, filename)
+  @filename= params[:filename].to_s
+  dir_name = File.basename(@filename, ".*")
+  dir_path = File.join(data_path, dir_name)
+
+  pattern = File.join(dir_path, "*")
+  @files = Dir.glob(pattern).map { |path| File.basename(path) }
 
   erb :previous
+end
+
+get "/:dir/previous/:filename" do
+  filename = params[:filename]
+  dir = params[:dir]
+  dir_name = File.basename(dir, ".*")
+  dir_path = File.join(data_path, dir_name)
+  file_path = File.join(dir_path, filename)
+
+  if File.exist?(file_path)
+    load_file_content(file_path)
+  else
+    session[:message] = "#{filename} does not exist."
+    redirect "/"
+  end
 end
 
 get "/users/signin" do
