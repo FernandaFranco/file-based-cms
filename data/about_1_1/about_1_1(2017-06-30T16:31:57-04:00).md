@@ -1,0 +1,3 @@
+# Ruby is...
+
+![ruby](\ruby-stone.png)

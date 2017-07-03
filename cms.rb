@@ -11,6 +11,14 @@ configure do
   set :session_secret, 'super secret'
 end
 
+VALID_IMG_EXTENSIONS = [".png", ".jpg"]
+
+helpers do
+  def image?(filename)
+    VALID_IMG_EXTENSIONS.include?(File.extname(filename))
+  end
+end
+
 def data_path
   if ENV["RACK_ENV"] == "test"
     File.expand_path("../test/data", __FILE__)
@@ -81,7 +89,7 @@ def load_file_content(path)
     content
   when ".md"
     render_markdown(content)
-  when ".png", ".jpg"
+  when *VALID_IMG_EXTENSIONS
     headers["Content-Type"] = "image/jpeg"
     content
   end
@@ -190,12 +198,12 @@ post "/new_image" do
     session[:message] = "An image is required."
     status 422
     erb :new_image
-  elsif File.extname(filename) == "" || ![".png", ".jpg"].include?(File.extname(filename))
-    session[:message] = "Invalid extension name."
+  elsif File.extname(filename) == "" || !VALID_IMG_EXTENSIONS.include?(File.extname(filename))
+    session[:message] = "Invalid extension name. Valid extensions are #{VALID_IMG_EXTENSIONS.join(', ')}"
     status 422
     erb :new_image
   elsif File.exist?(file_path)
-    session[:message] = "Image already in use."
+    session[:message] = "Image name already in use."
     status 422
     erb :new_image
   else

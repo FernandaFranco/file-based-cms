@@ -1,29 +1,31 @@
 <ul>
 <% @files.each do |file| %>
   <li>
-    <a href="/<%= file %>"><%= file %></a>
-    <form class="inline" action="/<%= file %>/edit" method="get"><button class="danger" type="submit">edit</button></form>
-    <!-- <a href="/<%= file %>/edit">edit</a> -->
-    <form class="inline" action="/<%= file %>/delete" method="post"><button class="danger" type="submit">delete</button></form>
-    <form class="inline" action="/<%= file %>/duplicate" method="post"><button class="safe" type="submit">duplicate</button></form>
-    <form class="inline" action="/<%= file %>/previous" method="get"><button class="safe" type="submit">previous versions</button></form>
+    <a href="/<%= file %>" class="regular"><%= file %></a>
+    <% unless image?(file) %>
+      <a href="/<%= file %>/edit" class="button">edit</a>
+      <a href="/<%= file %>/previous" class="button">previous versions</a>
+    <% end %>
+    <form class="inline" action="/<%= file %>/duplicate" method="post"><button class="button" type="submit">duplicate</button></form>
+      <form class="inline" action="/<%= file %>/delete" method="post"><button class="button" type="submit">delete</button></form>
   </li>
 <% end %>
 </ul>
 
 <p>
-  <a href="/new">New Document</a>
-  <a href="/new_image">New Image</a>
+  <a class="regular" href="/new">New Document</a>
+  /
+  <a class="regular" href="/new_image">New Image</a>
 </p>
 
 <% if session[:username] %>
   <form action="/users/signout" method="post">
     <p class="user-status">
       Signed in as <%= session[:username] %>.
-      <button class="danger" type="submit">Sign Out</button>
+      <button class="button" type="submit">Sign Out</button>
     </p>
   </form>
 <% else %>
-  <p class="user-status"> <a href="/users/signin">Sign In</p>
-  <p class="user-status"> <a href="/users/signup">Not an user yet? Sign Up</p>
+  <p class="user-status"> <a class="regular" href="/users/signin">Sign In</p>
+  <p class="user-status"> <a class="regular" href="/users/signup">Not an user yet? Sign Up</p>
 <% end %>

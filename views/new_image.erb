@@ -1,7 +1,8 @@
 <form action="/new_image" method="post" enctype="multipart/form-data">
   <label for="new_image">Choose an image to upload:</label>
   <div>
-    <input type="file" id="new_image" name="new_image">
+    <input type="file" accept="image/*" id="new_image" name="new_image">
     <button type="submit">Upload Image</button>
+    <a href="/"> Cancel </a>
   </div>
 </form>

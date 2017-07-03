@@ -3,12 +3,29 @@ body {
   font-family: sans-serif;
 }
 
-a {
-  text-decoration: none;
+a{
+ text-decoration:none;
+}
+
+a.regular:link {
+    color: #000000;
+}
+
+a.regular:visited {
+    color: #000000;
+}
+
+a.regular:hover {
+    color: gray;
+}
+
+a.regular:active {
+    color: blue;
 }
 .message {
   padding: 10px;
-  background: #FFFF99;
+  background: #2D848A;
+  color: #FFFFFF;
 }
 
 form.inline {
@@ -20,25 +37,25 @@ form.inline {
   font-size: 0.9em;
 }
 
-button {
+.button {
+  font: bold 11px Arial;
+  text-decoration: none;
+  background-color: #3587A4;
+  color: #FFFFFF;
+  padding: 2px 6px 2px 6px;
   border: none;
   border-radius: 7px;
-  color: white;
   text-align: center;
   box-shadow: 0 1px #999
 }
 
-button.danger:hover {
-    background-color: red;
+.button:hover {
+    background-color: #39A5AD;
 }
 
-button.safe:hover {
-    background-color: green;
-}
+.button:focus {outline:0;}
 
-button:focus {outline:0;}
-
-button:active {
+.button:active {
   box-shadow: 0 0px;
   transform: translateY(1px);
 }
