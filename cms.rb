@@ -197,14 +197,24 @@ end
 post "/new_image" do
   redirect_not_signed_in_user
 
-  filename = params[:new_image][:filename].to_s
-  content = params[:new_image][:tempfile]
-  file_path = File.join(data_path, filename)
-  if filename.size.zero?
+# if filename.size.zero?
+#   session[:message] = "An image is required."
+#   status 422
+#   erb :new_image
+# end
+
+  begin
+    filename = params[:new_image][:filename].to_s
+  rescue
     session[:message] = "An image is required."
     status 422
-    erb :new_image
-  elsif File.extname(filename) == "" || !VALID_IMG_EXTENSIONS.include?(File.extname(filename))
+    halt erb :new_image
+  end
+
+  content = params[:new_image][:tempfile]
+  file_path = File.join(data_path, filename)
+
+  if File.extname(filename) == "" || !VALID_IMG_EXTENSIONS.include?(File.extname(filename))
     session[:message] = "Invalid extension name. Valid extensions are #{VALID_IMG_EXTENSIONS.join(', ')}"
     status 422
     erb :new_image
