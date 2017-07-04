@@ -109,7 +109,7 @@ end
 get "/" do
   pattern = File.join(data_path, "*")
   @files = Dir.glob(pattern).map { |path| File.basename(path) }
-                            .reject { |file| File.extname(file).empty?}
+                            .reject { |file| File.basename(file).match?(/\(\S+\)\S+\.\w+/)}
   erb :index
 end
 
@@ -145,17 +145,19 @@ get "/:filename/edit" do
   erb :edit
 end
 
+def create_datestamp_copy(name, content)
+  stamped_name = "(" + DateTime.now.to_s + ")" + File.basename(name, ".*") +  File.extname(name)
+  File.open(File.join(data_path, stamped_name), "w") do |file|
+    file.write(content)
+  end
+end
+
 def create_document(name, content = "")
   File.open(File.join(data_path, name), "w") do |file|
     file.write(content)
   end
 
-  dir_path = File.join(data_path ,File.basename(name, ".*"))
-  Dir.mkdir(dir_path)
-  stamped_name = File.basename(name, ".*") + "(" + DateTime.now.to_s + ")" + File.extname(name)
-  File.open(File.join(dir_path, stamped_name), "w") do |file|
-    file.write(content)
-  end
+  create_datestamp_copy(name, content)
 end
 
 def upload_image(name, content)
@@ -179,6 +181,10 @@ post "/new" do
     erb :new
   elsif File.exist?(file_path)
     session[:message] = "Document name already in use."
+    status 422
+    erb :new
+  elsif filename.include?("(") || filename.include?(")")
+    session[:message] = "Name cannot contain parentheses."
     status 422
     erb :new
   else
@@ -206,6 +212,10 @@ post "/new_image" do
     session[:message] = "Image name already in use."
     status 422
     erb :new_image
+  elsif filename.include?("(") || filename.include?(")")
+    session[:message] = "Name cannot contain parentheses."
+    status 422
+    erb :new
   else
     upload_image(filename, content)
     session[:message] = "#{filename} was uploaded."
@@ -221,9 +231,8 @@ post "/:filename" do
   file_path = File.join(data_path, filename)
   File.write(file_path, new_content)
 
-  stamped_filename = File.basename(filename, ".*") + "(" + DateTime.now.to_s + ")" + File.extname(filename)
-  dir_path = File.join(data_path, File.basename(filename, ".*"))
-  file_path = File.join(dir_path, stamped_filename)
+  stamped_filename = "(" + DateTime.now.to_s + ")" + File.basename(filename, ".*") + File.extname(filename)
+  file_path = File.join(data_path, stamped_filename)
   File.write(file_path, new_content)
 
   session[:message] = "#{filename} has been updated."
@@ -269,28 +278,13 @@ get "/:filename/previous" do
   redirect_not_signed_in_user
 
   @filename= params[:filename].to_s
-  dir_name = File.basename(@filename, ".*")
-  dir_path = File.join(data_path, dir_name)
+  regex = /\(\S+\)#{@filename}/
 
-  pattern = File.join(dir_path, "*")
+  pattern = File.join(data_path, "*")
   @files = Dir.glob(pattern).map { |path| File.basename(path) }
+                            .select { |file| file.match?(regex) }
 
   erb :previous
-end
-
-get "/:dir/previous/:filename" do
-  filename = params[:filename]
-  dir = params[:dir]
-  dir_name = File.basename(dir, ".*")
-  dir_path = File.join(data_path, dir_name)
-  file_path = File.join(dir_path, filename)
-
-  if File.exist?(file_path)
-    load_file_content(file_path)
-  else
-    session[:message] = "#{filename} does not exist."
-    redirect "/"
-  end
 end
 
 get "/users/signin" do
