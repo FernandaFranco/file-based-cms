@@ -1,3 +1,0 @@
-new
-
-![](\ruby-stone.png)

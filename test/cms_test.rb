@@ -175,7 +175,7 @@ class CMSTest < Minitest::Test
     create_document("changes.txt")
 
     get "/"
-    assert_includes last_response.body, '<button type="submit"'
+    assert_includes last_response.body, '<button class="button" type="submit"'
 
     post "/changes.txt/delete", {}, admin_session
     assert_equal 302, last_response.status
@@ -241,7 +241,7 @@ class CMSTest < Minitest::Test
     post "/users/signin", username: "admin", password: "wrong"
     assert_equal 422, last_response.status
     assert_nil session[:username]
-    assert_includes last_response.body, "Invalid Credentials"
+    assert_includes last_response.body, "Invalid username and/or password."
   end
 
   def test_signing_up

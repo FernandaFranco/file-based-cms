@@ -11,7 +11,7 @@ configure do
   set :session_secret, 'super secret'
 end
 
-VALID_IMG_EXTENSIONS = [".png", ".jpg"]
+VALID_IMG_EXTENSIONS = [".png", ".jpg"].freeze
 
 helpers do
   def image?(filename)
@@ -108,8 +108,9 @@ end
 
 get "/" do
   pattern = File.join(data_path, "*")
-  @files = Dir.glob(pattern).map { |path| File.basename(path) }
-                            .reject { |file| File.basename(file).match?(/\(\S+\)\S+\.\w+/)}
+  @files = Dir.glob(pattern)
+              .map { |path| File.basename(path) }
+              .reject { |file| File.basename(file).match?(/\(\S+\)\S+\.\w+/) }
   erb :index
 end
 
@@ -145,9 +146,12 @@ get "/:filename/edit" do
   erb :edit
 end
 
+def stamped_name(name)
+  "(" + DateTime.now.to_s + ")" + File.basename(name, ".*") + File.extname(name)
+end
+
 def create_datestamp_copy(name, content)
-  stamped_name = "(" + DateTime.now.to_s + ")" + File.basename(name, ".*") +  File.extname(name)
-  File.open(File.join(data_path, stamped_name), "w") do |file|
+  File.open(File.join(data_path, stamped_name(name)), "w") do |file|
     file.write(content)
   end
 end
@@ -197,12 +201,6 @@ end
 post "/new_image" do
   redirect_not_signed_in_user
 
-# if filename.size.zero?
-#   session[:message] = "An image is required."
-#   status 422
-#   erb :new_image
-# end
-
   begin
     filename = params[:new_image][:filename].to_s
   rescue
@@ -241,9 +239,7 @@ post "/:filename" do
   file_path = File.join(data_path, filename)
   File.write(file_path, new_content)
 
-  stamped_filename = "(" + DateTime.now.to_s + ")" + File.basename(filename, ".*") + File.extname(filename)
-  file_path = File.join(data_path, stamped_filename)
-  File.write(file_path, new_content)
+  create_datestamp_copy(file_path, new_content)
 
   session[:message] = "#{filename} has been updated."
   redirect "/"
@@ -261,16 +257,15 @@ end
 
 def duplicated_filename(original_filename)
   number = 1
-  duplicated_filename = File.basename(original_filename, ".*") + "_" + number.to_s + File.extname(original_filename)
-  duplicated_file_path = File.join(data_path, duplicated_filename)
+  basename = File.basename(original_filename, ".*")
+  extname = File.extname(original_filename)
 
-  while File.exist?(duplicated_file_path)
-    number += 1
-    duplicated_filename = File.basename(original_filename, ".*") + "_" + number.to_s + File.extname(original_filename)
+  loop do
+    duplicated_filename = basename + "_" + number.to_s + extname
     duplicated_file_path = File.join(data_path, duplicated_filename)
+    return duplicated_filename unless File.exist?(duplicated_file_path)
+    number += 1
   end
-
-  duplicated_filename
 end
 
 post "/:filename/duplicate" do
@@ -287,12 +282,13 @@ end
 get "/:filename/previous" do
   redirect_not_signed_in_user
 
-  @filename= params[:filename].to_s
+  @filename = params[:filename].to_s
   regex = /\(\S+\)#{@filename}/
 
   pattern = File.join(data_path, "*")
-  @files = Dir.glob(pattern).map { |path| File.basename(path) }
-                            .select { |file| file.match?(regex) }
+  @files = Dir.glob(pattern)
+              .map { |path| File.basename(path) }
+              .select { |file| file.match?(regex) }
 
   erb :previous
 end
