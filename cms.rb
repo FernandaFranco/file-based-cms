@@ -176,7 +176,7 @@ post "/new" do
     status 422
     erb :new
   elsif File.extname(filename) == "" || ![".md", ".txt"].include?(File.extname(filename))
-    session[:message] = "Invalid extension name."
+    session[:message] = "Invalid extension name. Valid extensions are .txt, .md"
     status 422
     erb :new
   elsif File.exist?(file_path)
@@ -299,7 +299,7 @@ post "/users/signin" do
     session[:message] = "Welcome!"
     redirect "/"
   else
-    session[:message] = "Invalid Credentials"
+    session[:message] = "Invalid username and/or password."
     status 422
     erb :signin
   end
