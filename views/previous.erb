@@ -1,7 +1,9 @@
 <ul>
 <% @files.each do |file| %>
   <li>
-    <a href="/<%= file %>"><%= file %></a>
+    <a class="regular" href="/<%= file %>"><%= file %></a>
   </li>
 <% end %>
 </ul>
+
+<a class="regular" href="/">Return to Home page</a>
