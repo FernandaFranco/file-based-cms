@@ -179,7 +179,11 @@ post "/new" do
     session[:message] = "A name is required."
     status 422
     erb :new
-  elsif File.extname(filename) == "" || ![".md", ".txt"].include?(File.extname(filename))
+  elsif File.extname(filename) == ""
+    session[:message] = "Name can't be empty."
+    status 422
+    erb :new
+  elsif ![".md", ".txt"].include?(File.extname(filename))
     session[:message] = "Invalid extension name. Valid extensions are .txt, .md"
     status 422
     erb :new
@@ -212,8 +216,12 @@ post "/new_image" do
   content = params[:new_image][:tempfile]
   file_path = File.join(data_path, filename)
 
-  if File.extname(filename) == "" || !VALID_IMG_EXTENSIONS.include?(File.extname(filename))
-    session[:message] = "Invalid extension name. Valid extensions are #{VALID_IMG_EXTENSIONS.join(', ')}"
+  if File.extname(filename) == ""
+    session[:message] = "Name can't be empty."
+    status 422
+    erb :new_image
+  elsif !VALID_IMG_EXTENSIONS.include?(File.extname(filename))
+    session[:message] = "Invalid extension. Valid extensions are .jpg, .png"
     status 422
     erb :new_image
   elsif File.exist?(file_path)
